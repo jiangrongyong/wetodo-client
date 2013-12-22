@@ -8,10 +8,7 @@ import org.jivesoftware.openfire.muc.MUCRole;
 import org.jivesoftware.openfire.muc.MUCRoom;
 import org.jivesoftware.openfire.muc.MultiUserChatService;
 import org.jivesoftware.openfire.user.UserNotFoundException;
-import org.xmpp.packet.IQ;
-import org.xmpp.packet.JID;
-import org.xmpp.packet.Message;
-import org.xmpp.packet.PacketError;
+import org.xmpp.packet.*;
 import wetodo.handler.IQBaseHandler;
 import wetodo.manager.TaskGroupManager;
 import wetodo.model.TaskGroup;
@@ -53,10 +50,10 @@ public class IQTaskGroupAddHandler extends IQBaseHandler {
         MultiUserChatService chatService =
                 XMPPServer.getInstance().getMultiUserChatManager().getMultiUserChatService(rJid);
         MUCRoom room = chatService.getChatRoom(rJid.getNode());
-        //room.send(reply);
         org.xmpp.packet.Message message = new org.xmpp.packet.Message();
         message.setTo(rJid);
-        message.setBody("Add Taskgroup");
+        PacketExtension extension = new PacketExtension(packet.getChildElement().createCopy());
+        message.addExtension(extension);
         message.setType(Message.Type.groupchat);
         MUCRole senderRole;
         try {
