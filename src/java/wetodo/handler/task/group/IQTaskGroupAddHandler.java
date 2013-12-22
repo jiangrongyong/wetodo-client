@@ -2,7 +2,15 @@ package wetodo.handler.task.group;
 
 import org.dom4j.Element;
 import org.jivesoftware.openfire.IQHandlerInfo;
+import org.jivesoftware.openfire.XMPPServer;
+import org.jivesoftware.openfire.muc.ForbiddenException;
+import org.jivesoftware.openfire.muc.MUCRole;
+import org.jivesoftware.openfire.muc.MUCRoom;
+import org.jivesoftware.openfire.muc.MultiUserChatService;
+import org.jivesoftware.openfire.user.UserNotFoundException;
 import org.xmpp.packet.IQ;
+import org.xmpp.packet.JID;
+import org.xmpp.packet.Message;
 import org.xmpp.packet.PacketError;
 import wetodo.handler.IQBaseHandler;
 import wetodo.manager.TaskGroupManager;
@@ -37,7 +45,28 @@ public class IQTaskGroupAddHandler extends IQBaseHandler {
         taskGroup.setModify_date(now);
 
         // persistent to db
+        packet.getFrom().toBareJID();
         taskGroup = TaskGroupManager.getInstance().add(taskGroup);
+
+        // Send Muc msg
+        JID rJid = new JID(taskGroup.getRoomid());
+        MultiUserChatService chatService =
+                XMPPServer.getInstance().getMultiUserChatManager().getMultiUserChatService(rJid);
+        MUCRoom room = chatService.getChatRoom(rJid.getNode());
+        //room.send(reply);
+        org.xmpp.packet.Message message = new org.xmpp.packet.Message();
+        message.setTo(rJid);
+        message.setBody("Add Taskgroup");
+        message.setType(Message.Type.groupchat);
+        MUCRole senderRole;
+        try {
+            senderRole = room.getOccupant(packet.getFrom().getNode());
+            room.sendPublicMessage(message, senderRole);
+        } catch (UserNotFoundException e) {
+            e.printStackTrace();
+        } catch (ForbiddenException e) {
+            e.printStackTrace();
+        }
 
         // output
         return result(packet, TaskGroupAddXmlWriter.write(taskGroup.getRoomid(), taskGroup, namespace));
