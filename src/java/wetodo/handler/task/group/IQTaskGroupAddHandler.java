@@ -12,6 +12,7 @@ import org.xmpp.packet.*;
 import wetodo.handler.IQBaseHandler;
 import wetodo.manager.TaskGroupManager;
 import wetodo.model.TaskGroup;
+import wetodo.msg.Msg;
 import wetodo.xml.task.group.TaskGroupAddXmlReader;
 import wetodo.xml.task.group.TaskGroupAddXmlWriter;
 
@@ -46,19 +47,11 @@ public class IQTaskGroupAddHandler extends IQBaseHandler {
         taskGroup = TaskGroupManager.getInstance().add(taskGroup);
 
         // Send Muc msg
-        JID rJid = new JID(taskGroup.getRoomid());
-        MultiUserChatService chatService =
-                XMPPServer.getInstance().getMultiUserChatManager().getMultiUserChatService(rJid);
-        MUCRoom room = chatService.getChatRoom(rJid.getNode());
-        org.xmpp.packet.Message message = new org.xmpp.packet.Message();
-        message.setTo(rJid);
-        PacketExtension extension = new PacketExtension(packet.getChildElement().createCopy());
-        message.addExtension(extension);
-        message.setType(Message.Type.groupchat);
-        MUCRole senderRole;
         try {
-            senderRole = room.getOccupant(packet.getFrom().getNode());
-            room.sendPublicMessage(message, senderRole);
+            JID roomJid = new JID(taskGroup.getRoomid());
+            Element extensionElement = TaskGroupAddXmlWriter.write(taskGroup.getRoomid(), taskGroup, namespace);
+            String nickname = packet.getFrom().getNode();
+            Msg.groupchat(roomJid, extensionElement, nickname);
         } catch (UserNotFoundException e) {
             e.printStackTrace();
         } catch (ForbiddenException e) {
