@@ -47,6 +47,7 @@ public class WetodoPlugin implements Plugin {
         iqRouter.addHandler(new IQRoomCreateHandler());
         iqRouter.addHandler(new IQRoomInviteHandler());
         iqRouter.addHandler(new IQRoomMemberHandler());
+        iqRouter.addHandler(new IQRoomExitHandler());
         // Pay
         iqRouter.addHandler(new IQProductListHandler());
         iqRouter.addHandler(new IQPayPurchaseHandler());

@@ -123,4 +123,15 @@ public class RoomManager {
         List<User> memberList = RoomDAO.fetchMemberList(roomId);
         return memberList;
     }
+
+    public void exit(JID roomJid, JID userJid) throws NotAllowedException, UserNotFoundException, ConflictException, ForbiddenException {
+        MultiUserChatService chatService =
+                XMPPServer.getInstance().getMultiUserChatManager().getMultiUserChatService(roomJid);
+        LocalMUCRoom room = (LocalMUCRoom) chatService.getChatRoom(roomJid.getNode(), userJid);
+
+        LocalMUCRole role = (LocalMUCRole) room.getOccupant(userJid.getNode());
+
+        room.leaveRoom(role);
+        room.addNone(userJid, role);
+    }
 }
